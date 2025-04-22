@@ -36,15 +36,16 @@ STATIC_MODULES = [
     ("Recherche planifiée", "recherche_planifiee"),
     ("Choix de la ville", "location"),
     ("Configuration du navigateur + vérification de la localisation", "browser_config"),
+    ("Éditer mots-clés", "edit_keywords"),
     ("IP", "ip_info"),
     ("Module en test", "module_test"),
 ]
 CATEGORIES = [
-    ("Recherche", STATIC_MODULES[:3]),
-    ("Configuration", STATIC_MODULES[3:5]),
-    ("Infos", STATIC_MODULES[5:6]),
-    ("Module en test", STATIC_MODULES[6:7]),
-    ("Modules restants", None),  # sera rempli dynamiquement
+    ("🔍 Recherche", STATIC_MODULES[:3]),
+    ("⚙️ Configuration", STATIC_MODULES[3:6]),
+    ("ℹ️ Infos", STATIC_MODULES[6:7]),
+    ("🧪 Module en test", STATIC_MODULES[7:8]),
+    ("🧩 Modules restants", None),
 ]
 
 def load_config_location():
@@ -74,13 +75,13 @@ def build_menu():
     rest = [(m, m) for m in remaining]
     menu = []
     for title, group in CATEGORIES:
-        entries = rest if title == "Modules restants" else group
+        entries = rest if title.startswith("🧩") else group
         menu.append((title, entries))
     return menu
 
 def print_header(sim_loc, ip_info):
-    header = f" SGL – Search Google Legitimately "
     width = 60
+    header = " SGL – Search Google Legitimately "
     print(Fore.BLUE + Style.BRIGHT + header.center(width, '=') + Style.RESET_ALL)
     loc_str = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')}"
     ip_str = f"🌐 {ip_info.get('ip','N/A')} | TOR: {'Oui' if ip_info.get('tor') else 'Non'}"
@@ -93,11 +94,8 @@ def print_header(sim_loc, ip_info):
         print(Fore.RED + ip_info['alert'].center(width))
     print('=' * width)
 
-def print_keywords(keywords):
-    if not keywords:
-        return
-    print(Fore.YELLOW + "🗒️ Mots-clés :" + Style.RESET_ALL)
-    print(textwrap.fill(', '.join(keywords), width=60))
+def print_keywords_count(keywords):
+    print(Fore.YELLOW + f"🗒️ {len(keywords)} mots-clés configurés" + Style.RESET_ALL)
     print('-' * 60)
 
 def start_cli():
@@ -109,13 +107,13 @@ def start_cli():
         sim_loc = config_location or real_get_current_location()
         os.system('cls' if os.name == 'nt' else 'clear')
         print_header(sim_loc, ip_info)
-        print_keywords(keywords)
+        print_keywords_count(keywords)
 
         menu = build_menu()
         choices = {}
         idx = 1
         for title, entries in menu:
-            print(Fore.MAGENTA + Style.BRIGHT + f"{title}" + Style.RESET_ALL)
+            print(Fore.MAGENTA + Style.BRIGHT + title + Style.RESET_ALL)
             for label, module in entries:
                 print(f" {Fore.GREEN}{idx}{Style.RESET_ALL}. {label}")
                 choices[idx] = module
@@ -132,14 +130,27 @@ def start_cli():
         if choice == idx:
             print(Fore.YELLOW + "👋 À bientôt !")
             break
+
         module = choices.get(choice)
         if not module:
             continue
 
-        print(Fore.BLUE + f"\n▶️ Exécution du module: {module}\n" + Style.RESET_ALL)
+        # Éditer mots-clés
+        if module == 'edit_keywords':
+            os.system(f'nano "{KEYWORDS_CONF}"')
+            keywords = load_keywords()
+            continue
+
+        print(Fore.BLUE + f"
+▶️ Exécution du module: {module}
+" + Style.RESET_ALL)
         try:
             mod = importlib.import_module(f"services.{module}")
-            mod.main()
+            if hasattr(mod, 'main'):
+                mod.main()
+            else:
+                print(Fore.RED + "Erreur: module sans 'main()'.")
         except Exception as e:
             print(Fore.RED + f"Erreur: {e}")
-        input(Fore.CYAN + "\nAppuyez sur Entrée pour revenir au menu...")
+        input(Fore.CYAN + "
+Appuyez sur Entrée pour revenir au menu...")
