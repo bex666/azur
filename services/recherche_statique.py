@@ -1,1 +1,1 @@
-def main(): print('🔎 Recherche statique')
+def main(): print("🔎 Exécution de la recherche statique…")

@@ -1,1 +1,1 @@
-def get_current_location(): return {'city':'Unknown','country':'Unknown'}
+def get_current_location(): return {'city': 'Paris', 'country': 'France'}
