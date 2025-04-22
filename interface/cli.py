@@ -130,13 +130,10 @@ def start_cli():
             keywords = load_keywords()
             continue
 
-        print(f"
-▶️ Exécution du module: {module}
-")
+        print(f"\n▶️ Exécution du module: {module}\n")
         try:
             mod = importlib.import_module(f"services.{module}")
             mod.main()
         except Exception as e:
             print(f"Erreur: {e}")
-        input("
-Appuyez sur Entrée pour revenir au menu...")
+        input("\nAppuyez sur Entrée pour revenir au menu...")
