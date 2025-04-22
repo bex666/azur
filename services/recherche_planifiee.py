@@ -1,2 +1,1 @@
-def main():
-    print("⏰ Exécution de la recherche planifiée…")
+def main(): print('⏰ Recherche planifiée')

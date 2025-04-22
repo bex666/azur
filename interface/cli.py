@@ -68,9 +68,9 @@ def build_menu():
 
 def print_header(sim_loc, ip_info):
     """Affiche l'en-tête avec localisation simulée et infos IP."""
-    print(' ' + 'SGL – Search Google Legitimately'.center(WIDTH-2, ' ') + ' ')
+    print(' ' + 'SGL – Search Google Legitimately'.center(WIDTH-2) + ' ')
     print('=' * WIDTH)
-    loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')} "
+    loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')}"
     ip = f"🌐 {ip_info.get('ip','N/A')} | TOR: {'Oui' if ip_info.get('tor') else 'Non'}"
     print(loc.ljust(WIDTH//2) + ip.rjust(WIDTH//2))
     geo = ip_info.get('geo', {})
@@ -136,4 +136,4 @@ def start_cli():
             mod.main()
         except Exception as e:
             print(f"Erreur: {e}")
-        input("\nAppuyez sur Entrée pour revenir au menu..."\)
+        input("\nAppuyez sur Entrée pour revenir au menu...")
