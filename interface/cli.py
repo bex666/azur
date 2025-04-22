@@ -2,7 +2,7 @@ import importlib
 import os
 import pkgutil
 import json
-from services.location import get_current_location as real_get_current_location
+from services.location import get_current_location as real_get_current_location, city_selection_cli
 from services.ip_info import get_ip_info
 
 # Constantes
@@ -32,7 +32,6 @@ CATEGORIES = [
 ]
 
 def load_config_location():
-    """Charge la configuration de localisation depuis config/location.json."""
     try:
         with open(LOCATION_CONF, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -40,7 +39,6 @@ def load_config_location():
         return None
 
 def load_keywords():
-    """Charge la liste de mots-clés depuis config/mot_cles.txt."""
     try:
         with open(KEYWORDS_CONF, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f if line.strip()]
@@ -48,12 +46,10 @@ def load_keywords():
         return []
 
 def discover_modules():
-    """Retourne la liste des modules Python présents dans /services"""
     names = [name for _, name, _ in pkgutil.iter_modules([MODULE_PATH])]
     return sorted(names)
 
 def build_menu():
-    """Construit la structure de menu organisée par catégories."""
     all_mods = discover_modules()
     static_keys = [m for _, m in STATIC_MODULES]
     dynamic = [m for m in all_mods if m not in static_keys]
@@ -67,7 +63,6 @@ def build_menu():
     return menu
 
 def print_header(sim_loc, ip_info):
-    """Affiche l'en-tête avec localisation simulée et infos IP."""
     print(' ' + 'SGL – Search Google Legitimately'.center(WIDTH-2) + ' ')
     print('=' * WIDTH)
     loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')}"
@@ -83,12 +78,10 @@ def print_header(sim_loc, ip_info):
     print('=' * WIDTH)
 
 def print_keywords_count(keywords):
-    """Affiche le nombre de mots-clés configurés."""
     print(f"🗒️ {len(keywords)} mots-clés configurés")
     print('-' * WIDTH)
 
 def start_cli():
-    """Lance la boucle principale de l'interface CLI."""
     config_loc = load_config_location()
     keywords = load_keywords()
     ip_info = get_ip_info(force_refresh=True)
@@ -130,6 +123,11 @@ def start_cli():
             keywords = load_keywords()
             continue
 
+        if module == 'location':
+            city_selection_cli()
+            config_loc = load_config_location()
+            continue
+
         print(f"\n▶️ Exécution du module: {module}\n")
         try:
             mod = importlib.import_module(f"services.{module}")
@@ -137,4 +135,3 @@ def start_cli():
         except Exception as e:
             print(f"Erreur: {e}")
         input("\nAppuyez sur Entrée pour revenir au menu...")
-
