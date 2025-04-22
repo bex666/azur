@@ -2,18 +2,17 @@ import importlib
 import os
 import pkgutil
 import json
-import textwrap
 from services.location import get_current_location as real_get_current_location
 from services.ip_info import get_ip_info
 
-# Configuration paths
-here = os.path.dirname(__file__)
-CONFIG_DIR = os.path.abspath(os.path.join(here, '..', 'config'))
+# Constantes
+WIDTH = 60
+MODULE_PATH = 'services'
+CONFIG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config'))
 LOCATION_CONF = os.path.join(CONFIG_DIR, 'location.json')
 KEYWORDS_CONF = os.path.join(CONFIG_DIR, 'mot_cles.txt')
-MODULE_PATH = 'services'
 
-# Définition des catégories et modules statiques
+# Modules statiques et catégories
 STATIC_MODULES = [
     ('Recherche statique', 'recherche_statique'),
     ('Recherche mobile', 'recherche_mobile'),
@@ -33,7 +32,7 @@ CATEGORIES = [
 ]
 
 def load_config_location():
-    '''Charge la configuration de localisation depuis config/location.json.'''
+    """Charge la configuration de localisation depuis config/location.json."""
     try:
         with open(LOCATION_CONF, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -41,7 +40,7 @@ def load_config_location():
         return None
 
 def load_keywords():
-    '''Charge la liste de mots-clés depuis config/mot_cles.txt.'''
+    """Charge la liste de mots-clés depuis config/mot_cles.txt."""
     try:
         with open(KEYWORDS_CONF, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f if line.strip()]
@@ -49,51 +48,50 @@ def load_keywords():
         return []
 
 def discover_modules():
-    '''Découvre dynamiquement les modules Python dans le dossier services/.'''
-    mods = []
-    for _, name, _ in pkgutil.iter_modules([MODULE_PATH]):
-        mods.append(name)
-    return sorted(mods)
+    """Retourne la liste des modules Python présents dans /services"""
+    names = [name for _, name, _ in pkgutil.iter_modules([MODULE_PATH])]
+    return sorted(names)
 
 def build_menu():
-    '''Construit le menu organisé par catégories.'''
+    """Construit la structure de menu organisée par catégories."""
     all_mods = discover_modules()
-    statics = [m for _, m in STATIC_MODULES]
-    extras = [m for m in all_mods if m not in statics]
-    rest = [(m, m) for m in extras]
+    static_keys = [m for _, m in STATIC_MODULES]
+    dynamic = [m for m in all_mods if m not in static_keys]
     menu = []
     for title, group in CATEGORIES:
-        entries = rest if title.startswith('🧩') else group
+        if title == '🧩 Modules restants':
+            entries = [(m, m) for m in dynamic]
+        else:
+            entries = group
         menu.append((title, entries))
     return menu
 
 def print_header(sim_loc, ip_info):
-    '''Affiche l'entête avec localisation simulée et IP.'''
-    width = 60
-    header = ' SGL – Search Google Legitimately '
-    print(header.center(width, '='))
-    loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')}"
+    """Affiche l'en-tête avec localisation simulée et infos IP."""
+    print(' ' + 'SGL – Search Google Legitimately'.center(WIDTH-2, ' ') + ' ')
+    print('=' * WIDTH)
+    loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')} "
     ip = f"🌐 {ip_info.get('ip','N/A')} | TOR: {'Oui' if ip_info.get('tor') else 'Non'}"
-    print(loc.ljust(width//2) + ip.rjust(width//2))
+    print(loc.ljust(WIDTH//2) + ip.rjust(WIDTH//2))
     geo = ip_info.get('geo', {})
     if geo:
-        g = f"📍 {geo.get('city','?')}, {geo.get('region','?')}, {geo.get('country','?')}"
-        print(g.center(width))
+        geo_str = f"📍 {geo.get('city','?')}, {geo.get('region','?')}, {geo.get('country','?')}"
+        print(geo_str.center(WIDTH))
     alert = ip_info.get('alert')
     if alert:
-        print(alert.center(width))
-    print('=' * width)
+        print(alert.center(WIDTH))
+    print('=' * WIDTH)
 
 def print_keywords_count(keywords):
-    '''Affiche le nombre de mots-clés configurés.'''
+    """Affiche le nombre de mots-clés configurés."""
     print(f"🗒️ {len(keywords)} mots-clés configurés")
-    print('-' * 60)
+    print('-' * WIDTH)
 
 def start_cli():
-    '''Boucle principale du CLI.'''
+    """Lance la boucle principale de l'interface CLI."""
     config_loc = load_config_location()
     keywords = load_keywords()
-    ip_info = get_ip_info(force_refresh=True, verbose=False)
+    ip_info = get_ip_info(force_refresh=True)
 
     while True:
         sim_loc = config_loc or real_get_current_location()
@@ -112,7 +110,7 @@ def start_cli():
                 idx += 1
             print()
         print(f" {idx}. Quitter")
-        print('=' * 60)
+        print('=' * WIDTH)
 
         try:
             choice = int(input("🔀 Votre choix: "))
@@ -132,16 +130,10 @@ def start_cli():
             keywords = load_keywords()
             continue
 
-        print(f"
-▶️ Exécution du module: {module}
-")
+        print(f"\n▶️ Exécution du module: {module}\n")
         try:
             mod = importlib.import_module(f"services.{module}")
-            if hasattr(mod, 'main'):
-                mod.main()
-            else:
-                print("Erreur: module sans 'main()'.")
+            mod.main()
         except Exception as e:
             print(f"Erreur: {e}")
-        input("
-Appuyez sur Entrée pour revenir au menu...")
+        input("\nAppuyez sur Entrée pour revenir au menu..."\)
