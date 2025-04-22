@@ -1,1 +1,1 @@
-def main(): print('✏️ Édition mots-clés…')
+def main(): print('✏️ Édition mots-clés')

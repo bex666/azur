@@ -1,1 +1,1 @@
-def main(): print('📱 Exécution de la recherche mobile (Czarine)…')
+def main(): print('📱 Recherche mobile')

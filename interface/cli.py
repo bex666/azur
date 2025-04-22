@@ -18,7 +18,7 @@ STATIC_MODULES = [
     ('Recherche mobile', 'recherche_mobile'),
     ('Recherche planifiée', 'recherche_planifiee'),
     ('Choix de la ville', 'location'),
-    ('Configuration du navigateur + vérification de la localisation', 'browser_config'),
+    ('Configuration navigateur', 'browser_config'),
     ('Éditer mots-clés', 'edit_keywords'),
     ('IP', 'ip_info'),
     ('Module en test', 'module_test'),

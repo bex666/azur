@@ -1,1 +1,1 @@
-def main(): print('🧪 Module test…')
+def main(): print('🧪 Module test')
