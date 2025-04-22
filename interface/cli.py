@@ -18,7 +18,7 @@ STATIC_MODULES = [
     ('Recherche mobile', 'recherche_mobile'),
     ('Recherche planifiée', 'recherche_planifiee'),
     ('Choix de la ville', 'location'),
-    ('Configuration du navigateur + vérification de la localisation', 'browser_config'),
+    ('Configuration navigateur', 'browser_config'),
     ('Éditer mots-clés', 'edit_keywords'),
     ('IP', 'ip_info'),
     ('Module en test', 'module_test'),
@@ -130,13 +130,11 @@ def start_cli():
             keywords = load_keywords()
             continue
 
-        print(f"
-▶️ Exécution du module: {module}
-")
+        print(f"\n▶️ Exécution du module: {module}\n")
         try:
             mod = importlib.import_module(f"services.{module}")
             mod.main()
         except Exception as e:
             print(f"Erreur: {e}")
-        input("
-Appuyez sur Entrée pour revenir au menu...")
+        input("\nAppuyez sur Entrée pour revenir au menu...")
+
