@@ -1,13 +1,11 @@
 import os
 import json
 
-CONFIG_FILE = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'config', 'location.json')
-)
+CONFIG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config', 'location.json'))
 
 def get_current_location():
     try:
-        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+        with open(CONFIG_FILE, 'r') as f:
             return json.load(f)
-    except Exception:
-        return {'city': 'Unknown', 'country': 'Unknown'}
+    except:
+        return {'city':'Unknown','country':'Unknown'}
