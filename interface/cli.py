@@ -2,7 +2,6 @@ import importlib
 import os
 import pkgutil
 import json
-
 from services.location import get_current_location as real_get_current_location
 from services.ip_info import get_ip_info
 
@@ -19,7 +18,7 @@ STATIC_MODULES = [
     ('Recherche mobile', 'recherche_mobile'),
     ('Recherche planifiée', 'recherche_planifiee'),
     ('Choix de la ville', 'location'),
-    ('Configuration navigateur', 'browser_config'),
+    ('Configuration du navigateur + vérification de la localisation', 'browser_config'),
     ('Éditer mots-clés', 'edit_keywords'),
     ('IP', 'ip_info'),
     ('Module en test', 'module_test'),
@@ -32,43 +31,43 @@ CATEGORIES = [
     ('🧩 Modules restants', None),
 ]
 
-
 def load_config_location():
-    '''Charge config location.json.'''
+    """Charge la configuration de localisation depuis config/location.json."""
     try:
         with open(LOCATION_CONF, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return None
 
-
 def load_keywords():
-    '''Charge mot_cles.txt.'''
+    """Charge la liste de mots-clés depuis config/mot_cles.txt."""
     try:
         with open(KEYWORDS_CONF, 'r', encoding='utf-8') as f:
-            return [l.strip() for l in f if l.strip()]
+            return [line.strip() for line in f if line.strip()]
     except FileNotFoundError:
         return []
 
-
 def discover_modules():
-    '''Liste modules dans services/.'''
-    return sorted(name for _, name, _ in pkgutil.iter_modules([MODULE_PATH]))
-
+    """Retourne la liste des modules Python présents dans /services"""
+    names = [name for _, name, _ in pkgutil.iter_modules([MODULE_PATH])]
+    return sorted(names)
 
 def build_menu():
+    """Construit la structure de menu organisée par catégories."""
     all_mods = discover_modules()
     static_keys = [m for _, m in STATIC_MODULES]
     dynamic = [m for m in all_mods if m not in static_keys]
     menu = []
     for title, group in CATEGORIES:
-        entries = [(m, m) for m in dynamic] if title == '🧩 Modules restants' else group
+        if title == '🧩 Modules restants':
+            entries = [(m, m) for m in dynamic]
+        else:
+            entries = group
         menu.append((title, entries))
     return menu
 
-
 def print_header(sim_loc, ip_info):
-    '''Affiche header.'''
+    """Affiche l'en-tête avec localisation simulée et infos IP."""
     print(' ' + 'SGL – Search Google Legitimately'.center(WIDTH-2) + ' ')
     print('=' * WIDTH)
     loc = f"🌍 {sim_loc.get('city','?')}, {sim_loc.get('country','?')}"
@@ -76,22 +75,20 @@ def print_header(sim_loc, ip_info):
     print(loc.ljust(WIDTH//2) + ip.rjust(WIDTH//2))
     geo = ip_info.get('geo', {})
     if geo:
-        g = f"📍 {geo.get('city','?')}, {geo.get('region','?')}, {geo.get('country','?')}"
-        print(g.center(WIDTH))
+        geo_str = f"📍 {geo.get('city','?')}, {geo.get('region','?')}, {geo.get('country','?')}"
+        print(geo_str.center(WIDTH))
     alert = ip_info.get('alert')
     if alert:
         print(alert.center(WIDTH))
     print('=' * WIDTH)
 
-
 def print_keywords_count(keywords):
-    '''Affiche nombre mots-clés.'''
+    """Affiche le nombre de mots-clés configurés."""
     print(f"🗒️ {len(keywords)} mots-clés configurés")
     print('-' * WIDTH)
 
-
 def start_cli():
-    '''Démarre la CLI.'''
+    """Lance la boucle principale de l'interface CLI."""
     config_loc = load_config_location()
     keywords = load_keywords()
     ip_info = get_ip_info(force_refresh=True)
@@ -133,16 +130,10 @@ def start_cli():
             keywords = load_keywords()
             continue
 
-        print(f"
-▶️ Exécution du module: {module}
-")
+        print(f"\n▶️ Exécution du module: {module}\n")
         try:
             mod = importlib.import_module(f"services.{module}")
-            if hasattr(mod, 'main'):
-                mod.main()
-            else:
-                print("Erreur: module sans main().")
+            mod.main()
         except Exception as e:
             print(f"Erreur: {e}")
-        input("
-Appuyez sur Entrée pour revenir au menu...")
+        input("\nAppuyez sur Entrée pour revenir au menu...")
